@@ -29,7 +29,9 @@ app.post('/api/chat', async (req, res) => {
         });
 
         if (!response.ok) {
-            throw new Error('구글 API 서버 에러');
+            const errorData = await response.json();
+            console.error("🚨 구글 API가 거절한 진짜 이유:", errorData);
+            throw new Error(`구글 API 에러: ${errorData.error?.message || '알 수 없는 오류'}`);
         }
 
         const data = await response.json();
