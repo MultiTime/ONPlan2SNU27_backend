@@ -12,7 +12,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // 프론트엔드가 보낸 최신 6종 모델 ID를 구글 공식 API 식별자로 안전하게 변환
 const MODEL_MAPPING = {
     "gemini-3.5-flash": "gemini-2.5-flash", // 최신 Flash 정식 명칭 매핑
-    "gemini-3-flash": "gemini-1.5-flash",
+    "gemini-3-flash": "gemini-3-flash",
     "gemini-2.5-pro": "gemini-2.5-pro",
     "gemini-2.5-flash": "gemini-2.5-flash",
     "gemini-2-flash": "gemini-2.0-flash-exp",
