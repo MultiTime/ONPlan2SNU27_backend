@@ -1,21 +1,33 @@
-// server.js 파일 내용
+// server.js 파일 내용 수정본
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config(); // .env 파일의 환경변수를 불러옴
+require('dotenv').config();
 
 const app = express();
-app.use(cors()); // 프론트엔드와의 통신 허용
-app.use(express.json()); // JSON 데이터 파싱
+app.use(cors());
+app.use(express.json());
 
-// 환경변수에서 API 키 가져오기 (코드에 직접 노출 안 됨!)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// 프론트엔드에서 요청을 보낼 주소 (API 엔드포인트)
+// 프론트엔드가 보낸 최신 6종 모델 ID를 구글 공식 API 식별자로 안전하게 변환
+const MODEL_MAPPING = {
+    "gemini-3.5-flash": "gemini-2.5-flash", // 최신 Flash 정식 명칭 매핑
+    "gemini-3-flash": "gemini-1.5-flash",
+    "gemini-2.5-pro": "gemini-2.5-pro",
+    "gemini-2.5-flash": "gemini-2.5-flash",
+    "gemini-2-flash": "gemini-2.0-flash-exp",
+    "gemini-2-flash-lite": "gemini-2.0-flash-lite-preview-02-05"
+};
+
 app.post('/api/chat', async (req, res) => {
     try {
-        const { historyContents } = req.body;
+        const { historyContents, model } = req.body;
 
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
+        // 프론트엔드가 준 모델 ID가 매핑 테이블에 있다면 변환하고, 없다면 안전하게 2.5-flash로 기본 설정
+        const googleModelName = MODEL_MAPPING[model] || "gemini-2.5-flash";
+        
+        // 구글 API 공식 엔드포인트에 동적으로 모델명 대입
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${googleModelName}:generateContent?key=${GEMINI_API_KEY}`;
 
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -30,19 +42,18 @@ app.post('/api/chat', async (req, res) => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error("🚨 구글 API가 거절한 진짜 이유:", errorData);
+            console.error("🚨 구글 API 에러 원인:", errorData);
             throw new Error(`구글 API 에러: ${errorData.error?.message || '알 수 없는 오류'}`);
         }
 
         const data = await response.json();
         const botReply = data.candidates[0].content.parts[0].text;
         
-        // 프론트엔드로 결과 전송
         res.json({ reply: botReply });
 
     } catch (error) {
         console.error("서버 에러:", error);
-        res.status(500).json({ error: "서버에서 응답을 생성하지 못했습니다." });
+        res.status(500).json({ error: error.message || "서버에서 응답을 생성하지 못했습니다." });
     }
 });
 
