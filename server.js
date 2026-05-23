@@ -9,22 +9,12 @@ app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// 프론트엔드가 보낸 최신 6종 모델 ID를 구글 공식 API 식별자로 안전하게 변환
-const MODEL_MAPPING = {
-    "gemini-3.5-flash": "gemini-2.5-flash", // 최신 Flash 정식 명칭 매핑
-    "gemini-3-flash": "gemini-3-flash",
-    "gemini-2.5-pro": "gemini-2.5-pro",
-    "gemini-2.5-flash": "gemini-2.5-flash",
-    "gemini-2-flash": "gemini-2.0-flash-exp",
-    "gemini-2-flash-lite": "gemini-2.0-flash-lite-preview-02-05"
-};
-
 app.post('/api/chat', async (req, res) => {
     try {
         const { historyContents, model } = req.body;
 
         // 프론트엔드가 준 모델 ID가 매핑 테이블에 있다면 변환하고, 없다면 안전하게 2.5-flash로 기본 설정
-        const googleModelName = MODEL_MAPPING[model] || "gemini-2.5-flash";
+        const googleModelName = "gemini-3-flash-preview";
         
         // 구글 API 공식 엔드포인트에 동적으로 모델명 대입
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${googleModelName}:generateContent?key=${GEMINI_API_KEY}`;
